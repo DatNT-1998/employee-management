@@ -20,5 +20,5 @@ export const delEmployee = item => ({
 
 export const setListEmployee = (data) => ({
     type: employeeActionTypes.SET_LISTEMPLOYEE,
-    data
+    payload: data
 })

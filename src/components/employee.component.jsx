@@ -1,10 +1,9 @@
 import React, { Component } from "react";
-import { Table, Space, Modal, Input, Button, Form, InputNumber } from "antd";
+import { Table, Space, Modal, Input, Button, Form, Popconfirm } from "antd";
 import { FaPencilAlt, FaTrashAlt } from "react-icons/fa";
 import { MdAddCircle } from "react-icons/md";
-import { ExclamationCircleOutlined } from '@ant-design/icons';
 import { connect } from 'react-redux';
-import { addEmployee, setListEmployee, delEmployee } from "../redux/employee/employee.action";
+import { addEmployee, setListEmployee, delEmployee, updateEmployee } from "../redux/employee/employee.action";
 
 const layout = {
     labelCol: {
@@ -21,13 +20,9 @@ const tailLayout = {
     },
 };
 
-const { confirm } = Modal;
-
 
 class employee extends Component {
     formRef = React.createRef();
-
-
     constructor(props) {
         super(props);
         this.state = {
@@ -39,7 +34,8 @@ class employee extends Component {
                 dateOfBirth: '',
                 adress: '',
             },
-
+            dataEmployees: [],
+            activeKey: ""
         };
         this.biggestId = 0;
     }
@@ -48,20 +44,25 @@ class employee extends Component {
         fetch("https://5f851ca6c29abd0016190236.mockapi.io/emloyees")
             .then(data => data.json())
             .then(res => {
+                let temp = res;
+                temp.map((data, index) => {
+                    data.index = index + 1;
+                })
                 this.props.setListEmployee(res);
+
                 this.biggestId = res[res.length - 1].key;
                 console.log("biggestId", this.biggestId)
             })
     }
 
-
     columns = [
         {
             align: "center",
             title: "STT",
-            dataIndex: "key",
-            key: "key",
-            //   render: (text) => <a href="/">{text}</a>,
+            dataIndex: "index",
+            key: "index",
+            // render: () => (this.props.employees.map((item,
+            //   index) => (<div key={index}>{index + 1}</div>)))
         },
         {
             align: "center",
@@ -89,31 +90,16 @@ class employee extends Component {
             render: (_, record) => (
                 <Space size="middle">
                     <FaPencilAlt className="styled-icon" onClick={() => this.showModalDetail(record)} />
-                    <FaTrashAlt className="styled-icon" onClick={this.showModalBan} />
+                    <Popconfirm placement="leftTop" title="Bạn chắc chắn muốn xóa nhân viên này ?" onConfirm={() => this.handleDelete(record)} onCancel={this.handleCancelModalDel} okText="Yes" cancelText="No"><Button className="btn-delete" shape="circle" type="button" ><FaTrashAlt /></Button></Popconfirm>
+
+                    {/* <FaTrashAlt className="styled-icon" onClick={() => this.showModalBan(record)} /> */}
                 </Space>
             ),
         },
     ];
 
-
-    showModalBan = () => {
-        confirm({
-            title: 'Bạn có chắc chắn muốn xóa người dùng này không ?',
-            icon: <ExclamationCircleOutlined />,
-            // content: 'Some descriptions',
-            okText: 'Xóa',
-            okType: 'danger',
-            cancelText: 'Không',
-            onOk() {
-                console.log('OK');
-            },
-            onCancel() {
-                console.log('Cancel');
-            },
-        });
-    }
-
     showModalDetail = (record) => {
+        console.log("record", record)
         this.setState({
             visible: true,
             isAddNew: false,
@@ -122,22 +108,15 @@ class employee extends Component {
                 name: record.name,
                 dateOfBirth: record.dateOfBirth,
                 adress: record.adress
-            }
+            },
+            activeKey: record.key
         })
     }
 
     showModalAdd = () => {
-        console.log("do dai cua mang", this.props.employees.length)
-        let dodai = this.props.employees.length;
         this.setState({
             visible: true,
             isAddNew: true,
-            employees: {
-                key: dodai++,
-                name: '',
-                dateOfBirth: '',
-                adress: '',
-            }
         });
     };
 
@@ -152,6 +131,13 @@ class employee extends Component {
         });
     };
 
+    handleCancelModalDel = () => {
+    }
+
+    handleDelete = (record) => {
+        this.props.delEmployee(record);
+    }
+
     handleChange = (evt) => {
         const value = evt.target.value;
         this.setState({
@@ -161,8 +147,6 @@ class employee extends Component {
     };
 
     handleAddEmployee = () => {
-        console.log("item", this.formRef.current.getFieldsValue())
-
         const fieldValue = this.formRef.current.getFieldsValue();
 
         this.props.addEmployee({
@@ -170,6 +154,22 @@ class employee extends Component {
             name: fieldValue.username,
             dateOfBirth: fieldValue.dateOfBirth,
             adress: fieldValue.adress
+        })
+        this.setState({
+            visible: false
+        })
+    }
+
+    handleUpdateEmployee = () => {
+        const fieldValue = this.formRef.current.getFieldsValue();
+        this.props.updateEmployee({
+            key: this.state.activeKey,
+            name: fieldValue.username,
+            dateOfBirth: fieldValue.dateOfBirth,
+            adress: fieldValue.adress
+        })
+        this.setState({
+            visible: false
         })
     }
 
@@ -198,6 +198,7 @@ class employee extends Component {
                     visible={visible}
                     footer={null}
                     onCancel={this.handleCancel}
+                    key={this.state.activeKey}
                 >
                     <Form ref={this.formRef} name="dynamic_rule" {...layout}  >
                         {/* <Form.Item initialValue={employee.key} label="Id" name="key">
@@ -216,7 +217,7 @@ class employee extends Component {
                             <Button type="primary" onClick={this.handleCancel} style={{ width: '64px' }} >
                                 Hủy
                             </Button>
-                            <Button type="primary" style={{ marginLeft: 12, width: '64px' }} onClick={isAddNew ? this.handleAddEmployee : ""}>
+                            <Button type="primary" style={{ marginLeft: 12, width: '64px' }} onClick={isAddNew ? this.handleAddEmployee : this.handleUpdateEmployee}>
                                 {isAddNew ? 'Thêm' : 'Lưu'}
                             </Button>
                         </Form.Item>
@@ -239,7 +240,8 @@ const mapDispatchToProps = dispatch => {
     return {
         setListEmployee: (data) => dispatch(setListEmployee(data)),
         addEmployee: (item) => dispatch(addEmployee(item)),
-        delEmployee: (item) => dispatch(delEmployee(item))
+        delEmployee: (item) => dispatch(delEmployee(item)),
+        updateEmployee: (item) => dispatch(updateEmployee(item)),
     }
 }
 
