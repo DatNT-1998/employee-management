@@ -13,6 +13,7 @@ const layout = {
         span: 16,
     },
 };
+
 const tailLayout = {
     wrapperCol: {
         offset: 16,
@@ -23,6 +24,7 @@ const tailLayout = {
 
 class employee extends Component {
     formRef = React.createRef();
+
     constructor(props) {
         super(props);
         this.state = {
@@ -38,21 +40,16 @@ class employee extends Component {
             activeKey: ""
         };
         this.biggestId = 0;
-    }
-
-    componentDidMount() {
-        fetch("https://5f851ca6c29abd0016190236.mockapi.io/emloyees")
-            .then(data => data.json())
-            .then(res => {
-                let temp = res;
-                temp.map((data, index) => {
-                    data.index = index + 1;
-                })
-                this.props.setListEmployee(res);
-
-                this.biggestId = res[res.length - 1].key;
-                console.log("biggestId", this.biggestId)
-            })
+        // this.validateMessages = {
+        //     required: '${label} is required!',
+        //     types: {
+        //         email: '${label} is not validate email!',
+        //         number: '${label} is not a validate number!',
+        //     },
+        //     number: {
+        //         range: '${label} must be between ${min} and ${max}',
+        //     },
+        // };
     }
 
     columns = [
@@ -98,8 +95,23 @@ class employee extends Component {
         },
     ];
 
+    componentDidMount() {
+        fetch("https://5f851ca6c29abd0016190236.mockapi.io/emloyees")
+            .then(data => data.json())
+            .then(res => {
+                let temp = res;
+                temp.map((data, index) => (data.index = index + 1))
+                this.props.setListEmployee(res);
+
+                this.biggestId = res[res.length - 1].key;
+            })
+    }
+
+    onFinish = values => {
+        console.log(values);
+    };
+
     showModalDetail = (record) => {
-        console.log("record", record)
         this.setState({
             visible: true,
             isAddNew: false,
@@ -117,6 +129,12 @@ class employee extends Component {
         this.setState({
             visible: true,
             isAddNew: true,
+            employee: {
+                key: '',
+                name: '',
+                dateOfBirth: '',
+                adress: '',
+            }
         });
     };
 
@@ -169,7 +187,7 @@ class employee extends Component {
             adress: fieldValue.adress
         })
         this.setState({
-            visible: false
+            visible: false,
         })
     }
 
@@ -186,7 +204,6 @@ class employee extends Component {
                     </div>
                 </div>
 
-
                 <Table dataSource={employees} columns={this.columns} bordered />
 
                 {/* Modal Add and Detail */}.
@@ -200,24 +217,24 @@ class employee extends Component {
                     onCancel={this.handleCancel}
                     key={this.state.activeKey}
                 >
-                    <Form ref={this.formRef} name="dynamic_rule" {...layout}  >
+                    <Form ref={this.formRef} name="dynamic_rule" {...layout} onFinish={this.onFinish} validateMessages={this.validateMessages} >
                         {/* <Form.Item initialValue={employee.key} label="Id" name="key">
                             <InputNumber disabled />
                         </Form.Item> */}
-                        <Form.Item initialValue={employee.name} label="Tên nhân viên" name="username">
+                        <Form.Item initialValue={employee.name} label="Tên nhân viên" name="username" rules={[{ required: true, message: " Username is not null " }]} >
                             <Input />
                         </Form.Item>
-                        <Form.Item initialValue={employee.dateOfBirth} label="Ngày sinh" name="dateOfBirth">
+                        <Form.Item initialValue={employee.dateOfBirth} label="Ngày sinh" name="dateOfBirth" rules={[{ required: true, message: "Select a date" }]}>
                             <Input />
                         </Form.Item>
-                        <Form.Item initialValue={employee.adress} label="Quê quán" name="adress">
+                        <Form.Item initialValue={employee.adress} label="Quê quán" name="adress" rules={[{ required: true, message: " Adress is not null " }]} >
                             <Input />
                         </Form.Item>
                         <Form.Item {...tailLayout} style={{ marginBottom: '12px' }}>
                             <Button type="primary" onClick={this.handleCancel} style={{ width: '64px' }} >
                                 Hủy
                             </Button>
-                            <Button type="primary" style={{ marginLeft: 12, width: '64px' }} onClick={isAddNew ? this.handleAddEmployee : this.handleUpdateEmployee}>
+                            <Button type="primary" style={{ marginLeft: 12, width: '64px' }} onClick={isAddNew ? this.handleAddEmployee : this.handleUpdateEmployee} htmlType="submit">
                                 {isAddNew ? 'Thêm' : 'Lưu'}
                             </Button>
                         </Form.Item>
