@@ -40,16 +40,16 @@ class employee extends Component {
             activeKey: ""
         };
         this.biggestId = 0;
-        // this.validateMessages = {
-        //     required: '${label} is required!',
-        //     types: {
-        //         email: '${label} is not validate email!',
-        //         number: '${label} is not a validate number!',
-        //     },
-        //     number: {
-        //         range: '${label} must be between ${min} and ${max}',
-        //     },
-        // };
+        this.validateMessages = {
+            required: 'Value is not null',
+            types: {
+                'date': 'Value is not validate date!',
+                'number': 'Value is not a validate number!',
+            },
+            number: {
+                'range': 'Value must be between 0 and 1000000000',
+            },
+        };
     }
 
     columns = [
@@ -108,7 +108,14 @@ class employee extends Component {
     }
 
     onFinish = values => {
-        console.log(values);
+        const { isAddNew } = this.state;
+        if (isAddNew) {
+            this.handleAddEmployee();
+        } else {
+            this.handleUpdateEmployee();
+        }
+
+        console.log("value can co", values);
     };
 
     showModalDetail = (record) => {
@@ -218,14 +225,11 @@ class employee extends Component {
                     key={this.state.activeKey}
                 >
                     <Form ref={this.formRef} name="dynamic_rule" {...layout} onFinish={this.onFinish} validateMessages={this.validateMessages} >
-                        {/* <Form.Item initialValue={employee.key} label="Id" name="key">
-                            <InputNumber disabled />
-                        </Form.Item> */}
                         <Form.Item initialValue={employee.name} label="Tên nhân viên" name="username" rules={[{ required: true, message: " Username is not null " }]} >
                             <Input />
                         </Form.Item>
                         <Form.Item initialValue={employee.dateOfBirth} label="Ngày sinh" name="dateOfBirth" rules={[{ required: true, message: "Select a date" }]}>
-                            <Input />
+                            <Input type="date" />
                         </Form.Item>
                         <Form.Item initialValue={employee.adress} label="Quê quán" name="adress" rules={[{ required: true, message: " Adress is not null " }]} >
                             <Input />
@@ -234,7 +238,7 @@ class employee extends Component {
                             <Button type="primary" onClick={this.handleCancel} style={{ width: '64px' }} >
                                 Hủy
                             </Button>
-                            <Button type="primary" style={{ marginLeft: 12, width: '64px' }} onClick={isAddNew ? this.handleAddEmployee : this.handleUpdateEmployee} htmlType="submit">
+                            <Button type="primary" style={{ marginLeft: 12, width: '64px' }} htmlType="submit">
                                 {isAddNew ? 'Thêm' : 'Lưu'}
                             </Button>
                         </Form.Item>
