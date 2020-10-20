@@ -5,6 +5,8 @@ import { MdAddCircle } from "react-icons/md";
 import { connect } from 'react-redux';
 import { addEmployee, setListEmployee, delEmployee, updateEmployee } from "../redux/employee/employee.action";
 
+import { withAuth0 } from '@auth0/auth0-react';
+
 const layout = {
     labelCol: {
         span: 8,
@@ -96,7 +98,8 @@ class employee extends Component {
     ];
 
     componentDidMount() {
-        fetch("https://5f851ca6c29abd0016190236.mockapi.io/emloyees")
+
+        fetch("https://5f851ca6c29abd0016190236.mockapi.io/api/v1/emloyees")
             .then(data => data.json())
             .then(res => {
                 let temp = res;
@@ -114,8 +117,6 @@ class employee extends Component {
         } else {
             this.handleUpdateEmployee();
         }
-
-        console.log("value can co", values);
     };
 
     showModalDetail = (record) => {
@@ -173,7 +174,7 @@ class employee extends Component {
 
     handleAddEmployee = () => {
         const fieldValue = this.formRef.current.getFieldsValue();
-
+        console.log("value can add", fieldValue)
         this.props.addEmployee({
             key: ++this.biggestId,
             name: fieldValue.username,
@@ -201,49 +202,57 @@ class employee extends Component {
     render() {
         const { isAddNew, visible, employee } = this.state;
         const { employees } = this.props;
+        const { isAuthenticated } = this.props.auth0;
         return (
             <div className="admin-management">
-                <div className="feature-add">
-                    <h2> Danh sách nhân viên </h2>
-                    <div style={{ display: "flex", marginBottom: "16" }} onClick={this.showModalAdd}>
-                        <MdAddCircle size="20" className="styled-icon" />
-                        <span style={{ marginLeft: 4 }} className="styled-icon"> Thêm nhân viên</span>
-                    </div>
-                </div>
+                {
+                    isAuthenticated ? (
+                        <>
+                            {}
+                            <div className="feature-add">
+                                <h2> Danh sách nhân viên </h2>
+                                <div style={{ display: "flex", marginBottom: "16" }} onClick={this.showModalAdd}>
+                                    <MdAddCircle size="20" className="styled-icon" />
+                                    <span style={{ marginLeft: 4 }} className="styled-icon"> Thêm nhân viên</span>
+                                </div>
+                            </div>
 
-                <Table dataSource={employees} columns={this.columns} bordered />
+                            <Table dataSource={employees} columns={this.columns} bordered />
 
-                {/* Modal Add and Detail */}.
+                            {/* Modal Add and Detail */}.
 
-                <Modal
-                    title={
-                        isAddNew ? 'Thêm nhân viên' : 'Sửa thông tin nhân viên'
-                    }
-                    visible={visible}
-                    footer={null}
-                    onCancel={this.handleCancel}
-                    key={this.state.activeKey}
-                >
-                    <Form ref={this.formRef} name="dynamic_rule" {...layout} onFinish={this.onFinish} validateMessages={this.validateMessages} >
-                        <Form.Item initialValue={employee.name} label="Tên nhân viên" name="username" rules={[{ required: true, message: " Username is not null " }]} >
-                            <Input />
-                        </Form.Item>
-                        <Form.Item initialValue={employee.dateOfBirth} label="Ngày sinh" name="dateOfBirth" rules={[{ required: true, message: "Select a date" }]}>
-                            <Input type="date" />
-                        </Form.Item>
-                        <Form.Item initialValue={employee.adress} label="Quê quán" name="adress" rules={[{ required: true, message: " Adress is not null " }]} >
-                            <Input />
-                        </Form.Item>
-                        <Form.Item {...tailLayout} style={{ marginBottom: '12px' }}>
-                            <Button type="primary" onClick={this.handleCancel} style={{ width: '64px' }} >
-                                Hủy
+                            <Modal
+                                title={
+                                    isAddNew ? 'Thêm nhân viên' : 'Sửa thông tin nhân viên'
+                                }
+                                visible={visible}
+                                footer={null}
+                                onCancel={this.handleCancel}
+                                key={this.state.activeKey}
+                            >
+                                <Form ref={this.formRef} name="dynamic_rule" {...layout} onFinish={this.onFinish} validateMessages={this.validateMessages} >
+                                    <Form.Item initialValue={employee.name} label="Tên nhân viên" name="username" rules={[{ required: true, message: " Username is not null " }]} >
+                                        <Input />
+                                    </Form.Item>
+                                    <Form.Item initialValue={employee.dateOfBirth} label="Ngày sinh" name="dateOfBirth" rules={[{ required: true, message: "Select a date" }]}>
+                                        <Input type="date" />
+                                    </Form.Item>
+                                    <Form.Item initialValue={employee.adress} label="Quê quán" name="adress" rules={[{ required: true, message: " Adress is not null " }]} >
+                                        <Input />
+                                    </Form.Item>
+                                    <Form.Item {...tailLayout} style={{ marginBottom: '12px' }}>
+                                        <Button type="primary" onClick={this.handleCancel} style={{ width: '64px' }} >
+                                            Hủy
                             </Button>
-                            <Button type="primary" style={{ marginLeft: 12, width: '64px' }} htmlType="submit">
-                                {isAddNew ? 'Thêm' : 'Lưu'}
-                            </Button>
-                        </Form.Item>
-                    </Form>
-                </Modal>
+                                        <Button type="primary" style={{ marginLeft: 12, width: '64px' }} htmlType="submit">
+                                            {isAddNew ? 'Thêm' : 'Lưu'}
+                                        </Button>
+                                    </Form.Item>
+                                </Form>
+                            </Modal>
+                        </>
+                    ) : ('')
+                }
             </div>
         );
     }
@@ -266,4 +275,4 @@ const mapDispatchToProps = dispatch => {
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(employee);
+export default connect(mapStateToProps, mapDispatchToProps)(withAuth0(employee));

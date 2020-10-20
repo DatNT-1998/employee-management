@@ -8,6 +8,8 @@ import {
 
 import { Link } from 'react-router-dom';
 
+import { withAuth0 } from '@auth0/auth0-react';
+import LoginButton from './LoginButton.component';
 
 
 const { Header, Content, Sider } = Layout;
@@ -29,10 +31,10 @@ class Dashboard extends React.Component {
                     <div className="logo" />
                     <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline">
                         <Menu.Item key="1" icon={<PieChartOutlined />}>
-                            <Link to="employee">Option 1</Link>
+                            <Link to="employee">Employee</Link>
                         </Menu.Item>
                         <Menu.Item key="2" icon={<PieChartOutlined />}>
-                            <Link to="2">Option 2</Link>
+                            <Link to="profile">Profile</Link>
                         </Menu.Item>
                     </Menu>
                 </Sider>
@@ -42,6 +44,7 @@ class Dashboard extends React.Component {
                             className: 'trigger',
                             onClick: this.toggle,
                         })}
+                        <LoginButton />
                     </Header>
                     <Content style={{ margin: '0 16px' }}>
                         <div className="" style={{ padding: 24, minHeight: 360 }}>
@@ -54,4 +57,4 @@ class Dashboard extends React.Component {
     }
 }
 
-export default Dashboard;
+export default withAuth0(Dashboard);
